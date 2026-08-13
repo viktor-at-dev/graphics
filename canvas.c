@@ -49,3 +49,27 @@ int save_ppm(const Canvas *c, const char *filename) {
     fclose(fp);
     return 1;
 }
+void draw_line_naive(Canvas *c, int x0, int y0, int x1, int y1, Pixel color) {
+    // Edge case guard: avoid division by zero if x0 == x1 (pure vertical line)
+    if (x0 == x1) {
+        // If x doesn't change, we just draw a vertical column
+        int start_y = y0 < y1 ? y0 : y1;
+        int end_y   = y0 < y1 ? y1 : y0;
+        for (int y = start_y; y <= end_y; y++) {
+            set_pixel(c, x0, y, color);
+        }
+        return;
+    }
+
+    // Step horizontally from x0 to x1
+    for (int x = x0; x <= x1; x++) {
+        // 1. Calculate t (progress factor between 0.0 and 1.0)
+        float t = (float)(x - x0) / (float)(x1 - x0);
+
+        // 2. Interpolate y
+        int y = y0 + (int)((y1 - y0) * t);
+
+        // 3. Write to our memory buffer!
+        set_pixel(c, x, y, color);
+    }
+}
