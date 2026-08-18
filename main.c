@@ -13,13 +13,14 @@ int main(void) {
     clear_canvas(c, bg);
 
     // Test 1: Gentle Line (Width > Height) -> WORKS GREAT
-    draw_line_naive(c, 100, 100, 700, 300, red);
+    // draw_line_naive(c, 100, 100, 700, 300, red);
 
     // Test 2: Steep Line (Height > Width) -> LEAVES GAPS!
-    draw_line_naive(c, 200, 100, 300, 700, green);
+    // draw_line_naive(c, 200, 100, 300, 700, green);
 
     // Test 3: Right-to-Left Line (x0 > x1) -> FAILS TO DRAW!
-    draw_line_naive(c, 700, 700, 100, 600, blue);
+    // draw_line_naive(c, 700, 700, 100, 600, blue);
+    draw_line_naive2(c, 700,700,100,600,blue);
 
     if (save_ppm(c, "output.ppm")) {
         printf("Rendered naive lines to output.ppm successfully!\n");
