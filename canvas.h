@@ -28,4 +28,6 @@ void draw_line_naive(Canvas *c, int x0, int y0, int x1, int y1, Pixel color);
 // Line drawing: Attempt #3 (Bresenham's Integer Algorithm)
 void draw_line_bresenham(Canvas *c, int x0, int y0, int x1, int y1, Pixel color);
 void draw_line_naive2(Canvas *c, int x0, int y0, int x1, int y1, Pixel color);
+void draw_poor_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color);
+void drawline(Canvas *c,int x0, int y0, int x1, int y1, Pixel color);
 #endif // CANVAS_H

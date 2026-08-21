@@ -117,3 +117,27 @@ void draw_line_bresenham(Canvas *c, int x0, int y0, int x1, int y1, Pixel color)
         }
     }
 }
+void draw_poor_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color){
+    if(x1 < x0){
+        swap(&x0,&x1);
+        swap(&y0,&y1);
+    }
+    float a = (float)(y1 - y0)/(float)(x1 - x0);
+    float y = y0;
+    for(int x = x0;x <= x1;x++){
+        set_pixel(c,x,(int)y,color);
+        y += a;
+    }
+}
+void drawline(Canvas *c,int x0, int y0, int x1, int y1, Pixel color){
+    if(y1 < y0){
+        swap(&x0,&x1);
+        swap(&y0,&y1);
+    }
+    float a = (float)(x1 - x0)/(float)(y1 - y0);
+    float x = x0;
+    for(int y = y0; y <=y1;y++){
+        set_pixel(c,(int)x,y,color);
+        x += a;
+    }
+}

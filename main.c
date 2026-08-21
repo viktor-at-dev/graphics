@@ -21,6 +21,9 @@ int main(void) {
     // Test 3: Right-to-Left Line (x0 > x1) -> FAILS TO DRAW!
     // draw_line_naive(c, 700, 700, 100, 600, blue);
     draw_line_naive2(c, 700,700,100,600,blue);
+    draw_poor_line(c,-50,-200,60,240,red);
+    drawline(c,100,100,700,300,green);
+    drawline(c,0,0,800,800,blue);
 
     if (save_ppm(c, "output.ppm")) {
         printf("Rendered naive lines to output.ppm successfully!\n");
