@@ -30,4 +30,7 @@ void draw_line_bresenham(Canvas *c, int x0, int y0, int x1, int y1, Pixel color)
 void draw_line_naive2(Canvas *c, int x0, int y0, int x1, int y1, Pixel color);
 void draw_poor_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color);
 void drawline(Canvas *c,int x0, int y0, int x1, int y1, Pixel color);
+void draw_better_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color);
+void drawline_with_interpolation(Canvas *c,int x0, int y0, int x1, int y1, Pixel color);
+void interpolate(int x0, int y0, int x1, int y1);
 #endif // CANVAS_H

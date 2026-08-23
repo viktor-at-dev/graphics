@@ -93,30 +93,7 @@ void draw_line_naive2(Canvas *c, int x0, int y0, int x1, int y1, Pixel color){
     }
 }
 // Fixed Bresenham implementation
-void draw_line_bresenham(Canvas *c, int x0, int y0, int x1, int y1, Pixel color) {
-    int dx = abs(x1 - x0);
-    int dy = -abs(y1 - y0);
 
-    int sx = x0 < x1 ? 1 : -1;
-    int sy = y0 < y1 ? 1 : -1;
-
-    int err = dx + dy;
-
-    while (1) {
-        set_pixel(c, x0, y0, color);
-        if (x0 == x1 && y0 == y1) break;
-
-        int e2 = 2 * err;
-        if (e2 >= dy) {
-            err += dy;
-            x0 += sx;
-        }
-        if (e2 <= dx) {
-            err += dx;
-            y0 += sy;
-        }
-    }
-}
 void draw_poor_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color){
     if(x1 < x0){
         swap(&x0,&x1);
@@ -139,5 +116,68 @@ void drawline(Canvas *c,int x0, int y0, int x1, int y1, Pixel color){
     for(int y = y0; y <=y1;y++){
         set_pixel(c,(int)x,y,color);
         x += a;
+    }
+}
+void draw_better_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color){
+    float dx = x1 -x0;
+    float dy = y1-y0;
+    if(abs(dx)>abs(dy)){
+        if(x0 >x1){
+            swap(&x0,&x1);
+            swap(&y0,&y1);
+        }
+        float a = dy/dx;
+        float y = y0;
+        for(int x = x0;x <= x1;x++){
+            set_pixel(c,x,(int)y,color);
+            y += a;
+        }
+    }else{
+        if(y0 > y1){
+            swap(&x0,&x1);
+            swap(&y0,&y1);
+        }
+        float a = dy/dx;
+        float x = x0;
+        for(int y = y0;y <= y1;y++){
+            set_pixel(c,(int)x,y,color);
+            x += a;
+        }
+    }
+}
+void interpolate(int i0, int d0, int i1, int d1){
+    if(i0 == i1){
+        return;
+    };
+    int count = i1 - i0 + 1;
+    float values[count];
+    float a = (float)(d1 - d0)/(float)(i1 - i0);
+    for(int i = i0;i <= i1;i++){
+        values[i - i0] = d0 + a*(i - i0);
+    }
+}
+void drawline_with_interpolation(Canvas *c,int x0, int y0, int x1, int y1, Pixel color){
+    if(abs(x1 - x0)> abs(y1-y0)){
+        if(x0 > x1){
+            swap(&x0,&x1);
+            swap(&y0,&y1);
+        };
+       interpolate(x0, y0, x1, y1);
+        for(int x = x0;x <=x1;x++){
+            float t = (float)(x-x0)/(float)(x1-x0);
+            int y = y0 + (int)((y1 - y0)*t);
+            set_pixel(c,x,y,color);
+        }
+    }else{
+        if(y0 > y1){
+            swap(&x0,&x1);
+            swap(&y0,&y1);
+        };
+        interpolate(y0, x0, y1, x1);
+        for(int y = y0;y <=y1;y++){
+            float t = (float)(y-y0)/(float)(y1-y0);
+            int x = x0 + (int)((x1 - x0)*t);
+            set_pixel(c,x,y,color);
+        }
     }
 }

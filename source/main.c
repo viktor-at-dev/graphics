@@ -24,7 +24,9 @@ int main(void) {
     draw_poor_line(c,-50,-200,60,240,red);
     drawline(c,100,100,700,300,green);
     drawline(c,0,0,800,800,blue);
-
+    draw_better_line(c,0,800,800,0,red);
+    drawline_with_interpolation(c,0,0,800,800,green);
+    drawline_with_interpolation(c,0,800,800,0,blue);
     if (save_ppm(c, "output.ppm")) {
         printf("Rendered naive lines to output.ppm successfully!\n");
     }
