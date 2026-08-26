@@ -181,3 +181,8 @@ void drawline_with_interpolation(Canvas *c,int x0, int y0, int x1, int y1, Pixel
         }
     }
 }
+void draw_wireframe(Canvas *c,int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, Pixel color){
+    drawline_with_interpolation(c,x0,y0,x1,y1,color);
+    drawline_with_interpolation(c,x1,y1,x2,y2,color);
+    drawline_with_interpolation(c,x2,y2,x3,y3,color);
+}
