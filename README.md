@@ -30,12 +30,12 @@
 ```
 ┘
 Bash
-make
+`make`:
 Run the compiled executable to render the scene:
 
 Bash
-./wireframe-c
+`./wireframe-c`:
 To clean compiled object files and target output:
 
 Bash
-make clean
+`make clean`
