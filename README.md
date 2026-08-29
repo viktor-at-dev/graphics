@@ -26,4 +26,16 @@
  ┌────────────────┐     ┌──────────────────────┐     ┌────────────────────────┐     ┌─────────────────┐
  │ 3D Mesh Data   │ ──> │ Model Transformation │ ──> │ Perspective Projection │ ──> │ Rasterization   │
  │ (Local Vertices│     │ (Scale, Rotate, Move)│     │ (Divide by W)          │     │ (Bresenham C)   │
- └────────────────┘     └──────────────────────┘     └────────────────────────┘     └─────────────────┘
+ └────────────────┘     └──────────────────────┘     └────────────────────────┘     └─────────────────
+```
+┘
+Bash
+make
+Run the compiled executable to render the scene:
+
+Bash
+./wireframe-c
+To clean compiled object files and target output:
+
+Bash
+make clean
