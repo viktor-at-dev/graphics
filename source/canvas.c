@@ -1,4 +1,5 @@
 #include "canvas.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -50,139 +51,121 @@ int save_ppm(const Canvas *c, const char *filename) {
     fclose(fp);
     return 1;
 }
-void draw_line_naive(Canvas *c, int x0, int y0, int x1, int y1, Pixel color) {
-    // Edge case guard: avoid division by zero if x0 == x1 (pure vertical line)
-    if (x0 == x1) {
-        // If x doesn't change, we just draw a vertical column
-        int start_y = y0 < y1 ? y0 : y1;
-        int end_y   = y0 < y1 ? y1 : y0;
-        for (int y = start_y; y <= end_y; y++) {
-            set_pixel(c, x0, y, color);
-        }
-        return;
-    }
 
-    // Step horizontally from x0 to x1
-    for (int x = x0; x <= x1; x++) {
-        // 1. Calculate t (progress factor between 0.0 and 1.0)
-        float t = (float)(x - x0) / (float)(x1 - x0);
-
-        // 2. Interpolate y
-        int y = y0 + (int)((y1 - y0) * t);
-
-        // 3. Write to our memory buffer!
-        set_pixel(c, x, y, color);
-    }
-}
-// swap function to swap two integers
-void swap(int *a, int*b){
+void swap(int *a, int *b) {
     int temp = *a;
     *a = *b;
     *b = temp;
 }
-void draw_line_naive2(Canvas *c, int x0, int y0, int x1, int y1, Pixel color){
-    if(x1 < x0){
-        swap(&x0,&x1);
-        swap(&y0,&y1);
-        float a = (float)(y1 - y0) / (float)(x1 - x0);
-        float y = y0;
-        for(int x = x0;x <= x1;x++){
-            set_pixel(c,x,(int)y,color);
-            y += a;
-        }
-    }
-}
-// Fixed Bresenham implementation
 
-void draw_poor_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color){
-    if(x1 < x0){
-        swap(&x0,&x1);
-        swap(&y0,&y1);
-    }
-    float a = (float)(y1 - y0)/(float)(x1 - x0);
-    float y = y0;
-    for(int x = x0;x <= x1;x++){
-        set_pixel(c,x,(int)y,color);
-        y += a;
-    }
-}
-void drawline(Canvas *c,int x0, int y0, int x1, int y1, Pixel color){
-    if(y1 < y0){
-        swap(&x0,&x1);
-        swap(&y0,&y1);
-    }
-    float a = (float)(x1 - x0)/(float)(y1 - y0);
-    float x = x0;
-    for(int y = y0; y <=y1;y++){
-        set_pixel(c,(int)x,y,color);
-        x += a;
-    }
-}
-void draw_better_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color){
-    float dx = x1 -x0;
-    float dy = y1-y0;
-    if(abs(dx)>abs(dy)){
-        if(x0 >x1){
-            swap(&x0,&x1);
-            swap(&y0,&y1);
+void draw_better_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color) {
+    float dx = x1 - x0;
+    float dy = y1 - y0;
+    if (abs((int)dx) > abs((int)dy)) {
+        if (x0 > x1) {
+            swap(&x0, &x1);
+            swap(&y0, &y1);
         }
-        float a = dy/dx;
+        float a = dy / dx;
         float y = y0;
-        for(int x = x0;x <= x1;x++){
-            set_pixel(c,x,(int)y,color);
+        for (int x = x0; x <= x1; x++) {
+            set_pixel(c, x, (int)roundf(y), color);
             y += a;
         }
-    }else{
-        if(y0 > y1){
-            swap(&x0,&x1);
-            swap(&y0,&y1);
+    } else {
+        if (y0 > y1) {
+            swap(&x0, &x1);
+            swap(&y0, &y1);
         }
-        float a = dy/dx;
+        float a = (dy == 0) ? 0 : dx / dy;
         float x = x0;
-        for(int y = y0;y <= y1;y++){
-            set_pixel(c,(int)x,y,color);
+        for (int y = y0; y <= y1; y++) {
+            set_pixel(c, (int)roundf(x), y, color);
             x += a;
         }
     }
 }
-void interpolate(int i0, int d0, int i1, int d1){
-    if(i0 == i1){
+
+void interpolate(int i0, int d0, int i1, int d1, int *values) {
+    if (!values) return;
+    
+    // Single-step guard: handle flat lines without segfaulting
+    if (i0 == i1) {
+        values[0] = d0;
         return;
-    };
-    int count = i1 - i0 + 1;
-    float values[count];
-    float a = (float)(d1 - d0)/(float)(i1 - i0);
-    for(int i = i0;i <= i1;i++){
-        values[i - i0] = d0 + a*(i - i0);
+    }
+    
+    float a = (float)(d1 - d0) / (float)(i1 - i0);
+    for (int i = i0; i <= i1; i++) {
+        values[i - i0] = (int)roundf(d0 + a * (i - i0));
     }
 }
-void drawline_with_interpolation(Canvas *c,int x0, int y0, int x1, int y1, Pixel color){
-    if(abs(x1 - x0)> abs(y1-y0)){
-        if(x0 > x1){
-            swap(&x0,&x1);
-            swap(&y0,&y1);
-        };
-       interpolate(x0, y0, x1, y1);
-        for(int x = x0;x <=x1;x++){
-            float t = (float)(x-x0)/(float)(x1-x0);
-            int y = y0 + (int)((y1 - y0)*t);
-            set_pixel(c,x,y,color);
-        }
-    }else{
-        if(y0 > y1){
-            swap(&x0,&x1);
-            swap(&y0,&y1);
-        };
-        interpolate(y0, x0, y1, x1);
-        for(int y = y0;y <=y1;y++){
-            float t = (float)(y-y0)/(float)(y1-y0);
-            int x = x0 + (int)((x1 - x0)*t);
-            set_pixel(c,x,y,color);
+
+void draw_triangle_wireframe(Canvas *c, int x0, int y0, int x1, int y1, int x2, int y2, Pixel color) {
+    draw_better_line(c, x0, y0, x1, y1, color);
+    draw_better_line(c, x1, y1, x2, y2, color);
+    draw_better_line(c, x2, y2, x0, y0, color);
+}
+
+void draw_filled_triangle(Canvas *c, int x0, int y0, int x1, int y1, int x2, int y2, Pixel color) {
+    // 1. Sort vertices vertically so y0 <= y1 <= y2
+    if (y0 > y1) { swap(&x0, &x1); swap(&y0, &y1); }
+    if (y0 > y2) { swap(&x0, &x2); swap(&y0, &y2); }
+    if (y1 > y2) { swap(&x1, &x2); swap(&y1, &y2); }
+
+    // Edge case: flat line triangle (no height)
+    if (y0 == y2) return;
+
+    // Calculate edge heights
+    int h02 = y2 - y0 + 1;
+    int h01 = y1 - y0 + 1;
+    int h12 = y2 - y1 + 1;
+
+    // Buffer memory for edge x-coordinates
+    int x02[h02];
+    int x01[h01];
+    int x12[h12];
+
+    // 2. Compute x-coordinates along the 3 edges
+    interpolate(y0, x0, y2, x2, x02); // Long side
+    interpolate(y0, x0, y1, x1, x01); // Short side 1
+    interpolate(y1, x1, y2, x2, x12); // Short side 2
+
+    // 3. Concatenate short sides into one continuous array x012
+    int x012[h02];
+    for (int i = 0; i < h01 - 1; i++) {
+        x012[i] = x01[i];
+    }
+    for (int i = 0; i < h12; i++) {
+        x012[h01 - 1 + i] = x12[i];
+    }
+
+    // 4. Determine left vs. right edge arrays
+    int *x_left, *x_right;
+    int mid = h02 / 2;
+    if (x02[mid] < x012[mid]) {
+        x_left = x02;
+        x_right = x012;
+    } else {
+        x_left = x012;
+        x_right = x02;
+    }
+
+    // 5. Fill interior scanlines row by row using set_pixel
+    for (int y = y0; y <= y2; y++) {
+        int idx = y - y0;
+        for (int x = x_left[idx]; x <= x_right[idx]; x++) {
+            set_pixel(c, x, y, color);
         }
     }
 }
-void draw_wireframe(Canvas *c,int x0, int y0, int x1, int y1, int x2, int y2, int x3, int y3, Pixel color){
-    drawline_with_interpolation(c,x0,y0,x1,y1,color);
-    drawline_with_interpolation(c,x1,y1,x2,y2,color);
-    drawline_with_interpolation(c,x2,y2,x3,y3,color);
+
+void draw_shaded_outlined_triangle(Canvas *c, 
+                                   int x0, int y0, 
+                                   int x1, int y1, 
+                                   int x2, int y2, 
+                                   Pixel fill_color, 
+                                   Pixel outline_color) {
+    draw_filled_triangle(c, x0, y0, x1, y1, x2, y2, fill_color);
+    draw_triangle_wireframe(c, x0, y0, x1, y1, x2, y2, outline_color);
 }
