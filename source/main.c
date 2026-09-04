@@ -2,35 +2,61 @@
 #include "canvas.h"
 
 int main(void) {
+    // 1. Initialize canvas (800x800)
     Canvas *c = create_canvas(800, 800);
-    if (!c) return 1;
+    if (!c) {
+        fprintf(stderr, "Failed to allocate canvas memory.\n");
+        return 1;
+    }
 
-    Pixel bg    = {20, 20, 30};
-    Pixel red   = {255, 50, 50};
-    Pixel green = {50, 255, 50};
-    Pixel blue  = {50, 150, 255};
+    // 2. Define color palette
+    Pixel bg           = {20, 20, 30};    // Dark Slate
+    Pixel red          = {255, 50, 50};   // Vibrant Red
+    Pixel green        = {50, 255, 50};   // Neon Green
+    Pixel blue         = {50, 150, 255};  // Sky Blue
+    Pixel white        = {255, 255, 255}; // White
+    Pixel yellow       = {255, 220, 50};  // Bright Yellow
 
     clear_canvas(c, bg);
 
-    // Test 1: Gentle Line (Width > Height) -> WORKS GREAT
-    // draw_line_naive(c, 100, 100, 700, 300, red);
+    // -------------------------------------------------------------
+    // TEST 1: Direct Line Drawing (Testing all octants & slopes)
+    // -------------------------------------------------------------
+    // Gentle line (Width > Height, dx > dy)
+    draw_better_line(c, 50, 50, 750, 200, green);
+    
+    // Steep line (Height > Width, dy > dx)
+    draw_better_line(c, 100, 50, 200, 750, red);
+    
+    // Right-to-Left line (x0 > x1)
+    draw_better_line(c, 750, 750, 50, 650, blue);
+    
+    // Diagonals across canvas
+    draw_better_line(c, 0, 0, 799, 799, yellow);
+    draw_better_line(c, 0, 799, 799, 0, yellow);
 
-    // Test 2: Steep Line (Height > Width) -> LEAVES GAPS!
-    // draw_line_naive(c, 200, 100, 300, 700, green);
+    // -------------------------------------------------------------
+    // TEST 2: Wireframe Triangle
+    // -------------------------------------------------------------
+    draw_triangle_wireframe(c, 100, 600, 300, 750, 50, 750, white);
 
-    // Test 3: Right-to-Left Line (x0 > x1) -> FAILS TO DRAW!
-    // draw_line_naive(c, 700, 700, 100, 600, blue);
-    // draw_line_naive2(c, 700,700,100,600,blue);
-    // draw_poor_line(c,-50,-200,60,240,red);
-    // drawline(c,100,100,700,300,green);
-    // drawline(c,0,0,800,800,blue);
-    // draw_better_line(c,0,800,800,0,red);
-    // drawline_with_interpolation(c,0,0,800,800,green);
-    // drawline_with_interpolation(c,0,800,800,0,blue);
-    draw_wireframe(c,100,100,700,100,700,700,100,700,red);
-    draw_filled_triangle(c,100,100,700,100,400,700,blue);
+    // -------------------------------------------------------------
+    // TEST 3: Solid Filled Triangle
+    // -------------------------------------------------------------
+    draw_filled_triangle(c, 500, 100, 750, 100, 625, 400, blue);
+
+    // -------------------------------------------------------------
+    // TEST 4: Composite Shaded & Outlined Triangle
+    // -------------------------------------------------------------
+    draw_shaded_outlined_triangle(c, 300, 200, 500, 500, 150, 450, green, red);
+
+    // -------------------------------------------------------------
+    // Output Generation & Cleanup
+    // -------------------------------------------------------------
     if (save_ppm(c, "output.ppm")) {
-        printf("Rendered naive lines to output.ppm successfully!\n");
+        printf("Successfully rendered test frame to output.ppm\n");
+    } else {
+        fprintf(stderr, "Error: Failed to write output.ppm\n");
     }
 
     free_canvas(c);
