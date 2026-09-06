@@ -34,7 +34,7 @@ int main(void) {
     // Diagonals across canvas
     draw_better_line(c, 0, 0, 799, 799, yellow);
     draw_better_line(c, 0, 799, 799, 0, yellow);
-
+    clear_canvas(c, bg); // Clear canvas to test triangle rendering without line clutter
     // -------------------------------------------------------------
     // TEST 2: Wireframe Triangle
     // -------------------------------------------------------------

@@ -1,30 +1,37 @@
-# Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -O2 -Iinclude
+LDFLAGS = -lm
 TARGET = draw_line
-SRCS = main.c canvas.c
-OBJS = $(SRCS:.c=.o)
 
-# Default target runs the pipeline automatically
+# Direct paths matching your folder structure
+SRCS = source/main.c source/canvas.c
+OBJS = build/main.o build/canvas.o
+
 .PHONY: all run clean
 
 all: run
 
-# Build the final binary executable
+# Link executable
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET)
+	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
-# Compile C source files into object files
-%.o: %.c canvas.h
-	$(CC) $(CFLAGS) -c $< -o $@
+# Compile source/main.c -> build/main.o
+build/main.o: source/main.c include/canvas.h | build
+	$(CC) $(CFLAGS) -c source/main.c -o build/main.o
 
-# Run the program and convert PPM output to PNG
+# Compile source/canvas.c -> build/canvas.o
+build/canvas.o: source/canvas.c include/canvas.h | build
+	$(CC) $(CFLAGS) -c source/canvas.c -o build/canvas.o
+
+# Ensure build directory exists
+build:
+	mkdir -p build
+
 run: $(TARGET)
 	./$(TARGET)
 	convert output.ppm output.png
 	@echo "Rendered output.ppm and converted to output.png successfully!"
 
-# Clean up build artifacts and generated images
 clean:
-	rm -f $(OBJS) $(TARGET) output.ppm output.png
+	rm -rf build $(TARGET) output.ppm output.png
 	@echo "Cleaned build directory."
