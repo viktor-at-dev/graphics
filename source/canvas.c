@@ -125,6 +125,7 @@ void draw_filled_triangle(Canvas *c, int x0, int y0, int x1, int y1, int x2, int
     int x02[h02];
     int x01[h01];
     int x12[h12];
+    printf("x02 size: %d, x01 size: %d, x12 size: %d\n", h02, h01, h12);
 
     // 2. Compute x-coordinates along the 3 edges
     interpolate(y0, x0, y2, x2, x02); // Long side
@@ -168,4 +169,26 @@ void draw_shaded_outlined_triangle(Canvas *c,
                                    Pixel outline_color) {
     draw_filled_triangle(c, x0, y0, x1, y1, x2, y2, fill_color);
     draw_triangle_wireframe(c, x0, y0, x1, y1, x2, y2, outline_color);
+}
+
+void triangle_shading(Canvas *c, int x0, int y0, int x1, int y1, int x2, int y2, Pixel color) {
+    if(y0<y1) { swap(&x0, &x1); swap(&y0, &y1); }
+    if(y0<y2) { swap(&x0, &x2); swap(&y0, &y2); }
+    if(y1<y2) { swap(&x1, &x2); swap(&y1, &y2); }
+
+    if(y0 == y2) return;
+    // get the triangles heights
+    int h02 = y0 - y2 + 1;
+    int h01 = y0 - y1 + 1;
+    int h12 = y1 - y2 + 1;
+    // instantiate the arrays for the x coordinates of the edges
+    int x02[h02];
+    int x01[h01];
+    int x12[h12];
+
+    interpolate(y2, x2, y0, x0, x02);
+    interpolate(y1, x1, y0, x0, x01);
+    interpolate(y2, x2, y1, x1, x12);
+
+
 }
