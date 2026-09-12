@@ -36,4 +36,12 @@ void draw_triangle_wireframe(Canvas *c, int x0, int y0, int x1, int y1, int x2, 
 void draw_filled_triangle(Canvas *c, int x0, int y0, int x1, int y1, int x2, int y2, Pixel color);
 void draw_shaded_outlined_triangle(Canvas *c, int x0, int y0, int x1, int y1, int x2, int y2, Pixel fill_color, Pixel outline_color);
 
+// shaded triangle with interpolated intensity values prototypes
+void triangle_shading(Canvas *c, 
+                      int x0, int y0, float h0,
+                      int x1, int y1, float h1,
+                      int x2, int y2, float h2,
+                      Pixel color);
+void interpolate_float(int i0, float d0, int i1, float d1, float *values);
+
 #endif // CANVAS_H

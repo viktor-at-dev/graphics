@@ -57,6 +57,11 @@ void swap(int *a, int *b) {
     *a = *b;
     *b = temp;
 }
+void swapf(float *a, float *b) {
+    float temp = *a;
+    *a = *b;
+    *b = temp;
+}
 
 void draw_better_line(Canvas *c, int x0, int y0, int x1, int y1, Pixel color) {
     float dx = x1 - x0;
@@ -93,11 +98,25 @@ void interpolate(int i0, int d0, int i1, int d1, int *values) {
     if (i0 == i1) {
         values[0] = d0;
         return;
-    }
+    }0;
     
     float a = (float)(d1 - d0) / (float)(i1 - i0);
     for (int i = i0; i <= i1; i++) {
         values[i - i0] = (int)roundf(d0 + a * (i - i0));
+    }
+}
+void interpolate_float(int i0, float d0, int i1, float d1, float *values) {
+    if (!values) return;
+    
+    // Single-step guard: handle flat lines without segfaulting
+    if (i0 == i1) {
+        values[0] = d0;
+        return;
+    }
+    
+    float a = (d1 - d0) / (float)(i1 - i0);
+    for (int i = i0; i <= i1; i++) {
+        values[i - i0] = d0 + a * (i - i0);
     }
 }
 
@@ -171,24 +190,89 @@ void draw_shaded_outlined_triangle(Canvas *c,
     draw_triangle_wireframe(c, x0, y0, x1, y1, x2, y2, outline_color);
 }
 
-void triangle_shading(Canvas *c, int x0, int y0, int x1, int y1, int x2, int y2, Pixel color) {
-    if(y0<y1) { swap(&x0, &x1); swap(&y0, &y1); }
-    if(y0<y2) { swap(&x0, &x2); swap(&y0, &y2); }
-    if(y1<y2) { swap(&x1, &x2); swap(&y1, &y2); }
+void triangle_shading(Canvas *c, 
+                      int x0, int y0, float h0,
+                      int x1, int y1, float h1,
+                      int x2, int y2, float h2,
+                      Pixel color) 
+{
+    // 1. Sort vertices ascending by Y (y0 <= y1 <= y2)
+    if (y0 > y1) { swap(&x0, &x1); swap(&y0, &y1); swapf(&h0, &h1); }
+    if (y0 > y2) { swap(&x0, &x2); swap(&y0, &y2); swapf(&h0, &h2); }
+    if (y1 > y2) { swap(&x1, &x2); swap(&y1, &y2); swapf(&h1, &h2); }
 
-    if(y0 == y2) return;
-    // get the triangles heights
-    int h02 = y0 - y2 + 1;
-    int h01 = y0 - y1 + 1;
-    int h12 = y1 - y2 + 1;
-    // instantiate the arrays for the x coordinates of the edges
-    int x02[h02];
-    int x01[h01];
-    int x12[h12];
+    if (y0 == y2) return; // Flat zero-height triangle
 
-    interpolate(y2, x2, y0, x0, x02);
-    interpolate(y1, x1, y0, x0, x01);
-    interpolate(y2, x2, y1, x1, x12);
+    // 2. Segment Heights
+    int h02 = y2 - y0 + 1;
+    int h01 = y1 - y0 + 1;
+    int h12 = y2 - y1 + 1;
 
+    // 3. Allocate Arrays (x-coordinates AND float intensities)
+    int x02[h02], x01[h01], x12[h12];
+    float h02_arr[h02], h01_arr[h01], h12_arr[h12];
 
+    // 4. Interpolate X coordinates
+    interpolate(y0, x0, y1, x1, x01);
+    interpolate(y1, x1, y2, x2, x12);
+    interpolate(y0, x0, y2, x2, x02);
+
+    // 5. Interpolate Intensity Values (using float interpolation)
+    interpolate_float(y0, h0, y1, h1, h01_arr);
+    interpolate_float(y1, h1, y2, h2, h12_arr);
+    interpolate_float(y0, h0, y2, h2, h02_arr);
+
+    // 6. Concatenate Short Edges (X and Intensity)
+    int x012[h02];
+    float h012_arr[h02];
+
+    for (int i = 0; i < h01 - 1; i++) {
+        x012[i] = x01[i];
+        h012_arr[i] = h01_arr[i];
+    }
+    for (int i = 0; i < h12; i++) {
+        x012[h01 - 1 + i] = x12[i];
+        h012_arr[h01 - 1 + i] = h12_arr[i];
+    }
+
+    // 7. Determine Left vs. Right Rail
+    int *x_left, *x_right;
+    float *h_left, *h_right;
+    int mid = h02 / 2;
+
+    if (x02[mid] < x012[mid]) {
+        x_left = x02;  h_left = h02_arr;
+        x_right = x012; h_right = h012_arr;
+    } else {
+        x_left = x012; h_left = h012_arr;
+        x_right = x02;  h_right = h02_arr;
+    }
+
+    // 8. Scanline Rasterization with Horizontal Intensity Interpolation
+    for (int y = y0; y <= y2; y++) {
+        int idx = y - y0;
+        int xl = x_left[idx];
+        int xr = x_right[idx];
+        
+        float hl = h_left[idx];
+        float hr = h_right[idx];
+
+        // Interpolate intensity across the current scanline row
+        int row_width = xr - xl + 1;
+        float h_row[row_width > 0 ? row_width : 1];
+        interpolate_float(xl, hl, xr, hr, h_row);
+
+        for (int x = xl; x <= xr; x++) {
+            float intensity = h_row[x - xl];
+            
+            // Scale color channels by intensity (0.0 to 1.0)
+            Pixel shaded_color = {
+                (uint8_t)(color.r * intensity),
+                (uint8_t)(color.g * intensity),
+                (uint8_t)(color.b * intensity)
+            };
+
+            set_pixel(c, x, y, shaded_color);
+        }
+    }
 }

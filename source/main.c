@@ -40,15 +40,23 @@ int main(void) {
     // -------------------------------------------------------------
     draw_triangle_wireframe(c, 100, 600, 300, 750, 50, 750, white);
 
-    // -------------------------------------------------------------
+    
     // TEST 3: Solid Filled Triangle
-    // -------------------------------------------------------------
     draw_filled_triangle(c, 500, 100, 750, 100, 625, 400, blue);
 
     // -------------------------------------------------------------
     // TEST 4: Composite Shaded & Outlined Triangle
     // -------------------------------------------------------------
     draw_shaded_outlined_triangle(c, 300, 200, 500, 500, 150, 450, green, red);
+
+    clear_canvas(c, bg); // Clear canvas to test triangle rendering without line clutter
+
+    // Test 5: Drawing a shaded triangle with interpolated intensity values
+    triangle_shading(c,
+                     400, 600, 0.0f,   // Vertex A with intensity
+                     600, 600, 1.0f,   // Vertex B with intensity
+                     500, 400, 0.5f,   // Vertex C with intensity
+                     yellow);          // Color to shade with
 
     // -------------------------------------------------------------
     // Output Generation & Cleanup
