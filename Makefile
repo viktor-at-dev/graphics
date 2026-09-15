@@ -3,9 +3,9 @@ CFLAGS = -Wall -Wextra -O2 -Iinclude
 LDFLAGS = -lm
 TARGET = draw_line
 
-# Direct paths matching your folder structure
-SRCS = source/main.c source/canvas.c
-OBJS = build/main.o build/canvas.o
+# Include 3d.c in sources and objects
+SRCS = source/main.c source/canvas.c source/3d.c
+OBJS = build/main.o build/canvas.o build/3d.o
 
 .PHONY: all run clean
 
@@ -15,13 +15,17 @@ all: run
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
-# Compile source/main.c -> build/main.o
-build/main.o: source/main.c include/canvas.h | build
+# Compile main.c
+build/main.o: source/main.c include/canvas.h include/3d.h | build
 	$(CC) $(CFLAGS) -c source/main.c -o build/main.o
 
-# Compile source/canvas.c -> build/canvas.o
+# Compile canvas.c
 build/canvas.o: source/canvas.c include/canvas.h | build
 	$(CC) $(CFLAGS) -c source/canvas.c -o build/canvas.o
+
+# Compile 3d.c
+build/3d.o: source/3d.c include/3d.h include/canvas.h | build
+	$(CC) $(CFLAGS) -c source/3d.c -o build/3d.o
 
 # Ensure build directory exists
 build:
