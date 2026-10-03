@@ -15,3 +15,4 @@ point2D project_vertex(v3 vertex, int canvas_width, int canvas_height, float foc
 
     return projected_point;
 }
+// cube definition
