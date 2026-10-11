@@ -3,6 +3,27 @@
 #include "canvas.h"
 #include "3d.h"
 
+void render_instance(Canvas *c, instance *inst, float focal_length){
+    mesh *m = inst->mesh;
+    for(int i=0; i < m->face_count; i++){
+        triangle_indices face = m->faces[i];
+
+        v3 local_vo = m->vertices[face.v0];
+        v3 local_v1 = m->vertices[face.v1];
+        v3 local_v2 = m->vertices[face.v2];
+
+        v3 world_v0 = transform_vertex(local_vo, inst->transform);
+        v3 world_v1 = transform_vertex(local_v1, inst->transform);
+        v3 world_v2 = transform_vertex(local_v2, inst->transform);
+
+        point2D p0 = project_vertex(world_v0, c->width, c->height, focal_length);
+        point2D p1 = project_vertex(world_v1, c->width, c->height, focal_length);
+        point2D p2 = project_vertex(world_v2, c->width, c->height, focal_length);
+
+        draw_filled_triangle(c, p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, face.color);
+    }
+}
+
 int main(void) {
     // 1. Initialize canvas (800x800)
     Canvas *c = create_canvas(800, 800);
@@ -118,6 +139,47 @@ int main(void) {
 
         draw_filled_triangle(c, cp0.x, cp0.y, cp1.x, cp1.y, cp2.x, cp2.y, face.color);
     }
+    clear_canvas(c,bg);
+    // centered cue mesh
+    v3 cube_verts[8] = {
+        {-1.0f, -1.0f, -1.0f}, { 1.0f, -1.0f, -1.0f},
+        { 1.0f,  1.0f, -1.0f}, {-1.0f,  1.0f, -1.0f},
+        {-1.0f, -1.0f,  1.0f}, { 1.0f, -1.0f,  1.0f},
+        { 1.0f,  1.0f,  1.0f}, {-1.0f,  1.0f,  1.0f}
+    };
+    triangle_indices cube_faces2[12] = {
+        {0, 1, 2, {255, 255, 255}}, {0, 2, 3, {255, 255, 255}},
+        {4, 5, 6, {255, 255, 255}}, {4, 6, 7, {255, 255, 255}},
+        {0, 1, 5, {255, 255, 255}}, {0, 5, 4, {255, 255, 255}},
+        {2, 3, 7, {255, 255, 255}}, {2, 7, 6, {255, 255, 255}},
+        {1, 2, 6, {255, 255, 255}}, {1, 6, 5, {255, 255, 255}},
+        {3, 0, 4, {255, 255, 255}}, {3, 4, 7, {255, 255, 255}}
+    };
+
+    mesh cube_mesh = {cube_verts, 8, cube_faces2, 12};
+    float cube_focal_length = 300.0f;
+
+    instance cube1 = {
+        .mesh = &cube_mesh,
+        .transform = {
+            .position = {-2.0f, 0.0f, 5.0f},
+            .rotation = {0.4f, 0.6f, 0.0f},
+            .scale    = {1.0f, 1.0f, 1.0f}
+        }
+    };
+
+    // 3. Create Instance 2: Center-Right (Smaller, double scale, different tilt)
+    instance cube2 = {
+        .mesh = &cube_mesh,
+        .transform = {
+            .position = {2.2f, 0.5f, 6.0f},
+            .rotation = {-0.5f, 1.2f, 0.3f},
+            .scale    = {0.7f, 1.4f, 0.7f} // Stretched vertically
+        }
+    };
+
+    render_instance(c, &cube1, cube_focal_length);
+    render_instance(c, &cube2, cube_focal_length);
 
     // -------------------------------------------------------------
     // Output Generation & Cleanup
